@@ -12,6 +12,15 @@
 % Current Subject
 \newcommand{\currentsubject}{example}
 
+% Bibliography Support
+\usepackage[style=apa, backend=biber]{biblatex}
+\DeclareLanguageMapping{english}{english-apa}
+\addbibresource{references.bib}
+
+% Uncomment below if you want all content regardless 
+% if cited or not to print in the bibliography.
+% \nocite{*}   
+
 \begin{document}
 
     \begin{titlepage}
@@ -67,5 +76,10 @@
     % Begin Content
 
     Start writing content here.
+
+    % Bibliography (Only prints if cited)
+
+    \newpage
+    \printbibliography
 
 \end{document}
