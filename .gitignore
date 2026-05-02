@@ -1,3 +1,11 @@
+# macOS
+.DS_Store
+.DS_Store?
+.Spotlight-V100
+.Trashes
+._*
+
+# latex and output
 *.aux
 *.log
 *.fls
