@@ -3,14 +3,22 @@
 % Change your details in utility.tex
 \input{../utilities/utility.tex}
 
+% Set these three per assignment. Leave \currentpart empty if there is no part.
+\newcommand{\currentsubject}{example}
+\newcommand{\currentassignment}{1}
+\newcommand{\currentpart}{Part 1}
+\checksubject{\currentsubject}
+
 % Packages
 \usepackage{fancyhdr}
+\usepackage{microtype}
 
-% Change to a sans-serif font for better on-display reading
+% Change to a sans-serif font for better on-display reading. Helvetica ships
+% with macOS only, so fall back rather than failing to build elsewhere.
 \usepackage{fontspec}
-\setmainfont{Helvetica}
-% Current Subject
-\newcommand{\currentsubject}{example}
+\IfFontExistsTF{Helvetica}
+    {\setmainfont{Helvetica}}
+    {\IfFontExistsTF{TeX Gyre Heros}{\setmainfont{TeX Gyre Heros}}{}}
 
 % Bibliography Support
 \usepackage[style=apa, backend=biber]{biblatex}
@@ -21,7 +29,20 @@
 % if cited or not to print in the bibliography.
 % \nocite{*}   
 
+% Loaded last so it can hook the packages above.
+\usepackage{hyperref}
+\hypersetup{
+    hidelinks,
+    pdftitle={\subjectinfo{\currentsubject} -- \assignmenttitle},
+    pdfauthor={\studentname},
+    pdfsubject={\subjectname{\currentsubject}},
+}
+
 \begin{document}
+
+    % No page anchors on the title page: \pagenumbering below restarts the
+    % counter at 1, which would give two PDF destinations named page.1.
+    \hypersetup{pageanchor=false}
 
     \begin{titlepage}
     \centering
@@ -35,7 +56,7 @@
     \large \subjectname{\currentsubject}\\[0.75cm]
     
     % Assignment Title
-    {\huge\bfseries \assignmentname{1}[Part 1]}\\[2cm]
+    {\huge\bfseries \assignmenttitle}\\[2cm]
     \vspace*{1.5cm}
 
     % Student Info
@@ -63,6 +84,7 @@
     \end{titlepage}
 
     \newpage
+    \hypersetup{pageanchor=true}
     \pagenumbering{arabic}
 
     % Header Setup

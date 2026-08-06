@@ -7,18 +7,13 @@ import shutil
 ROOT: Path = Path(__file__).parent
 MAIN = ROOT / "main" / "main.tex"
 UTILITY = ROOT / "utilities" / "utility.tex"
-DELIVER = ROOT / "deliver"
 
 
 def read_macro(file_path: Path, macro: str):
     with open(file_path, "r") as f:
         content = f.read()
-    patterns = [rf"\\newcommand{{\\{macro}}}\{{(.*?)\}}", rf"\\{macro}\{{(.*?)\}}"]
-    for pat in patterns:
-        match = re.search(pat, content)
-        if match:
-            return match.group(1)
-    return "UNKNOWN"
+    match = re.search(rf"\\newcommand{{\\{macro}}}\{{(.*?)\}}", content)
+    return match.group(1) if match else "UNKNOWN"
 
 
 def get_subject_code(file_path: Path, key: str):
@@ -29,16 +24,6 @@ def get_subject_code(file_path: Path, key: str):
         if k == key:
             return code
     return "UNKNOWN"
-
-
-def read_assignment(file_path: Path):
-    """Return (number, part) from the first \\assignmentname{n}[part] usage."""
-    with open(file_path, "r") as f:
-        content = f.read()
-    match = re.search(r"\\assignmentname\{(.*?)\}\s*(?:\[(.*?)\])?", content)
-    if not match:
-        return "UNKNOWN", ""
-    return match.group(1), match.group(2) or ""
 
 
 def slug(text: str):
@@ -55,7 +40,8 @@ def run_cmd(cmd: list[str], cwd: Path, label: str):
     result = subprocess.run(cmd, cwd=cwd)
     if result.returncode != 0:
         print(f"\n FAILED: {label} (exit {result.returncode})")
-        print(f" No PDF written. See {cwd / f'{jobname}.log'} for the first '!' line.")
+        print(" This build produced no PDF.")
+        print(f" See {cwd / f'{jobname}.log'} for the first '!' line.")
         sys.exit(result.returncode)
     return result
 
@@ -63,8 +49,8 @@ def run_cmd(cmd: list[str], cwd: Path, label: str):
 subject_key = read_macro(MAIN, "currentsubject")
 subject_code = get_subject_code(UTILITY, subject_key).upper()
 studentnumber: str = read_macro(UTILITY, "studentnumber")
-currentsubject: str = read_macro(MAIN, "currentsubject").upper()
-assignment, assignment_part = read_assignment(MAIN)
+assignment: str = read_macro(MAIN, "currentassignment")
+assignment_part: str = read_macro(MAIN, "currentpart")
 
 # Keep the optional part in the name too, or Part 1 and Part 2 of the same
 # assignment both land on the same filename and clobber each other.

@@ -11,31 +11,30 @@
 \newcommand{\statementoforiginality}{\textit{I, \studentname, declare that this assignment
 is my own work. It has not been copied from any other source.}}
 
-\NewDocumentCommand{\assignmentname}{m o}{
-    ASSIGNMENT~#1%
-    \IfValueT{#2}{%
-        \IfBlankF{#2}{~--~#2}%
-    }%
+% "ASSIGNMENT 1", or "ASSIGNMENT 1 -- Part 1" when \currentpart is set.
+\newcommand{\assignmenttitle}{%
+    ASSIGNMENT~\currentassignment%
+    \ifx\currentpart\empty\else~--~\currentpart\fi%
 }
 
-\NewDocumentCommand{\newsubject}{m m m}{
+\NewDocumentCommand{\newsubject}{m m m}{%
     \expandafter\def\csname subject#1.code\endcsname{#2}%
     \expandafter\def\csname subject#1.name\endcsname{#3}%
 }
 
-% Error out on an unknown key instead of silently typesetting nothing.
+% Kept expandable so the values survive into the PDF metadata. Wrapping these
+% in \NewDocumentCommand would make them \protected, and hyperref would write
+% the raw key instead of the code and title.
+\newcommand{\subjectcode}[1]{\csname subject#1.code\endcsname}
+\newcommand{\subjectname}[1]{\csname subject#1.name\endcsname}
+\newcommand{\subjectinfo}[1]{\subjectcode{#1}~--~\subjectname{#1}}
+
+% Called once from main.tex. An unknown key would otherwise typeset nothing.
 \NewDocumentCommand{\checksubject}{m}{%
     \ifcsname subject#1.code\endcsname\else
         \errmessage{Unknown subject key '#1'.
             Define it with \string\newsubject\space in utilities/utility.tex}%
     \fi
-}
-
-\NewDocumentCommand{\subjectcode}{m}{\checksubject{#1}\csname subject#1.code\endcsname}
-\NewDocumentCommand{\subjectname}{m}{\checksubject{#1}\csname subject#1.name\endcsname}
-
-\NewDocumentCommand{\subjectinfo}{m}{
-    \subjectcode{#1}~--~\subjectname{#1}
 }
 
 % Example usage for \newsubject
