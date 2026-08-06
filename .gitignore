@@ -11,4 +11,12 @@
 *.fls
 *.fdb_latexmk
 *.synctex.gz
+*.out
+*.toc
 *.pdf
+
+# biblatex / biber
+*.bbl
+*.bcf
+*.blg
+*.run.xml
