@@ -23,8 +23,16 @@ is my own work. It has not been copied from any other source.}}
     \expandafter\def\csname subject#1.name\endcsname{#3}%
 }
 
-\NewDocumentCommand{\subjectcode}{m}{\csname subject#1.code\endcsname}
-\NewDocumentCommand{\subjectname}{m}{\csname subject#1.name\endcsname}
+% Error out on an unknown key instead of silently typesetting nothing.
+\NewDocumentCommand{\checksubject}{m}{%
+    \ifcsname subject#1.code\endcsname\else
+        \errmessage{Unknown subject key '#1'.
+            Define it with \string\newsubject\space in utilities/utility.tex}%
+    \fi
+}
+
+\NewDocumentCommand{\subjectcode}{m}{\checksubject{#1}\csname subject#1.code\endcsname}
+\NewDocumentCommand{\subjectname}{m}{\checksubject{#1}\csname subject#1.name\endcsname}
 
 \NewDocumentCommand{\subjectinfo}{m}{
     \subjectcode{#1}~--~\subjectname{#1}
