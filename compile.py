@@ -1,5 +1,6 @@
 import re
 import subprocess
+import sys
 from pathlib import Path
 import shutil
 
@@ -30,21 +31,48 @@ def get_subject_code(file_path: Path, key: str):
     return "UNKNOWN"
 
 
+def read_assignment(file_path: Path):
+    """Return (number, part) from the first \\assignmentname{n}[part] usage."""
+    with open(file_path, "r") as f:
+        content = f.read()
+    match = re.search(r"\\assignmentname\{(.*?)\}\s*(?:\[(.*?)\])?", content)
+    if not match:
+        return "UNKNOWN", ""
+    return match.group(1), match.group(2) or ""
+
+
+def slug(text: str):
+    """Strip anything that doesn't belong in a filename or -jobname."""
+    return re.sub(r"[^A-Za-z0-9]", "", text)
+
+
 def run_cmd(cmd: list[str], cwd: Path, label: str):
-    """Run a subprocess command, print a label, and return the CompletedProcess."""
+    """Run a subprocess command, print a label, and abort if it fails."""
     print(f"\n{'=' * 60}")
     print(f"  Running: {label}")
     print(f"  Command: {' '.join(str(c) for c in cmd)}")
     print(f"{'=' * 60}\n")
-    return subprocess.run(cmd, cwd=cwd)
+    result = subprocess.run(cmd, cwd=cwd)
+    if result.returncode != 0:
+        print(f"\n FAILED: {label} (exit {result.returncode})")
+        print(f" No PDF written. See {cwd / f'{jobname}.log'} for the first '!' line.")
+        sys.exit(result.returncode)
+    return result
 
 
 subject_key = read_macro(MAIN, "currentsubject")
 subject_code = get_subject_code(UTILITY, subject_key).upper()
 studentnumber: str = read_macro(UTILITY, "studentnumber")
 currentsubject: str = read_macro(MAIN, "currentsubject").upper()
-assignment: str = read_macro(MAIN, "assignmentname")
-jobname = f"{subject_code}_A{assignment}_{studentnumber}"
+assignment, assignment_part = read_assignment(MAIN)
+
+# Keep the optional part in the name too, or Part 1 and Part 2 of the same
+# assignment both land on the same filename and clobber each other.
+name_parts = [subject_code, f"A{slug(assignment)}"]
+if slug(assignment_part):
+    name_parts.append(slug(assignment_part))
+name_parts.append(studentnumber)
+jobname = "_".join(name_parts)
 
 latex_cmd = [
     "lualatex",
